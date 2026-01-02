@@ -13,45 +13,42 @@ def einsum_ops(A: np.ndarray, B: np.ndarray) -> Dict[str, Union[np.ndarray, floa
         Dict with "transpose", "sum", "row_sum", "col_sum", "matmul"
     """
     
-    # 1. Transpose: Swap indices
-    # Input: ij, Output: ji
-    transpose = np.einsum('ij->ji', A)
+    results = {}
     
-    # 2. Sum All: Contract (destroy) all indices
-    # Input: ij, Output: (nothing)
-    # sum_all = np.einsum('ij->', A)
-    sum_all = np.sum(A)
+    # 1. TRANSPOSE: Swap dimensions
+    # "ij->ji": Take element (i,j) to position (j,i)
+    results["transpose"] = np.einsum("ij->ji", A)
     
-    # 3. Row Sum: Keep rows (i), destroy columns (j)
-    # Input: ij, Output: i
-    # row_sum = np.einsum('ij->i', A)
-    row_sum = np.sum(A, axis=1)
+    # 2. SUM ALL: Complete reduction
+    # "ij->": Sum over all indices i and j
+    results["sum"] = np.einsum("ij->", A)
     
-    # 4. Col Sum: Keep columns (j), destroy rows (i)
-    # Input: ij, Output: j
-    # col_sum = np.einsum('ij->j', A)
-    col_sum = np.sum(A, axis=0)
+    # 3. ROW SUM: Reduce columns
+    # "ij->i": Keep i, sum over j
+    results["row_sum"] = np.einsum("ij->i", A)
     
-    # 5. MatMul: Standard matrix multiplication
-    # A is (N, D) -> 'ik'
-    # B is (D, M) -> 'kj' (k must match D)
-    # Output is (N, M) -> 'ij'
-    # The 'k' index appears in input but not output, so it is summed over.
-    # matmul = np.einsum('ik,kj->ij', A, B)
-    matmul = A @ B
+    # 4. COL SUM: Reduce rows  
+    # "ij->j": Keep j, sum over i
+    results["col_sum"] = np.einsum("ij->j", A)
     
-    return {
-        "transpose": transpose,
-        "sum": sum_all,
-        "row_sum": row_sum,
-        "col_sum": col_sum,
-        "matmul": matmul
-    }
+    # 5. MATRIX MULTIPLICATION: The heart of neural networks
+    # "ik,kj->ij": Sum over k (contraction)
+    # Theory: This is a linear layer: Y = XW
+    results["matmul"] = np.einsum("ik,kj->ij", A, B)
+    
+    return results
 
 """
 # B=Batch, H=Heads, T=Time(Seq), D=Dim
 # Query: BHTD, Key: BHTD
 # We want attention scores: BHTT (Sequence vs Sequence for each Head)
     scores = np.einsum('bhtd, bhkd -> bhtk', Q, K)
+"""
+
+"""
+Neural Network Forward Pass:
+Input X → Linear Layer → Activation → Output
+          ↑
+        WX + b = einsum("ik,kj->ij", X, W) + b
 """
 

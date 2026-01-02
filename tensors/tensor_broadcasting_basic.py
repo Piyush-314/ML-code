@@ -2,7 +2,7 @@ import numpy as np
 
 def broadcast_ops(X: np.ndarray, b: np.ndarray, w: np.ndarray) -> np.ndarray:
     """
-    Computes (X + b) * w using broadcasting.
+    Computes {(X + b)*w} using broadcasting (efficient vectorization)
     
     Args:
         X: Input matrix of shape (N, D)
@@ -49,3 +49,12 @@ w = [0.5, 2]  # Shape (2,)
 
 Result = [[5.5, 11.], 
           [26., 48.]]"""
+
+
+'''
+Why Broadcasting Matters in ML:
+In ML, operations on large datasets and high-dimensional tensors are common. Broadcasting allows for efficient computation without the need for explicit replication of data, which saves memory and speeds up calculations. 
+
+1. Neural Networks: When applying weights and biases to layers of neurons, broadcasting enables efficient addition and multiplication across batches of data.
+2. Data Normalization: Operations like mean subtraction and scaling can be performed efficiently across datasets.
+'''

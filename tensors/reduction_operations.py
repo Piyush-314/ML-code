@@ -8,28 +8,6 @@ def tensor_reductions(x: np.ndarray, axis: int) -> Dict[str, Union[np.ndarray, f
     tensor_reductions(x, axis) that takes a tensor x and an axis parameter, then returns a dictionary with four essential reduction operations:
     """
 
-    '''
-    "sum": Sum of elements along the specified axis
-        Used in loss functions, gradient accumulation, and feature aggregation
-        Shape: Reduces the dimension at axis to size 1 (or removes it if keepdims=False)
-
-    "mean": Mean (average) of elements along axis
-        mean= 1/n∑ximean = 1/n∑xi
-        Used in loss functions (MSE, MAE), average pooling, and normalization statistics
-        Shape: Same reduction as sum
-
-    "max": Maximum value along axis
-        Finds the largest element in the specified dimension
-        Used in max pooling, ReLU (which is essentially max(0, x)), and attention mechanisms
-        Shape: Same reduction as sum
-
-    "argmax": Index of the maximum value along axis
-        Critical for classification: converting logits to predicted class labels
-        Used in finding the most activated feature, selecting the best action in reinforcement learning
-        Shape: Same reduction as sum, but returns integer indices
-
-    '''
-
     """
     The axis parameter determines which dimension to reduce:
 
@@ -39,16 +17,35 @@ def tensor_reductions(x: np.ndarray, axis: int) -> Dict[str, Union[np.ndarray, f
         axis=None: Reduce all dimensions to a scalar
 
     """
-    #
-    results = {
-        "sum": np.sum(x, axis=axis),
-        "mean": np.mean(x, axis=axis),
-        "max": np.max(x, axis=axis),
-        "argmax": np.argmax(x, axis=axis)
-    }
+    results = {}
+
+    # SUM: Total accumulation
+    # Theory: Used in gradient accumulation during backprop
+    results["sum"] = np.sum(x, axis=axis)
+    
+    # MEAN: Average value
+    # Theory: Most loss functions use mean (MSE, CrossEntropy)
+    # Why not sum? Mean normalizes by batch size → stable gradients
+    results["mean"] = np.mean(x, axis=axis)
+    
+    # MAX: Highest value
+    # Theory: Used in max pooling (CNNs) and ReLU
+    # Gradient: Only max element gets gradient (others get 0)
+    results["max"] = np.max(x, axis=axis)
+    
+    # ARGMAX: Index of highest value
+    # Theory: Used in classification (predicting class labels)
+    # Critical for accuracy calculation
+    results["argmax"] = np.argmax(x, axis=axis)
+    
     
     return results
     
+
+"""
+Mean reduction in loss: Each sample contributes equally to gradient
+Max reduction in pooling: Gradient only flows through max element (sparse gradient)
+"""
 
 
 """

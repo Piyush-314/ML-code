@@ -4,8 +4,12 @@ def reshape_and_transpose(x: np.ndarray, B: int, C: int, H: int, W: int) -> np.n
     """
     Reshapes flat x to (B, C, H, W) then transposes to (B, H, W, C).
 
-    1) Reshape: Convert the 1D vector into a 4D tensor of shape - NCHW
-    2) Transpose: Rearrange dimensions to shape - NHWC
+    1) Reshape: 
+        Reinterprets memory layout without moving data
+        Convert the 1D vector into a 4D tensor of shape - NCHW
+    2) Transpose: 
+        Changes dimension order (affects memory stride)
+        Rearrange dimensions to shape - NHWC
 
     B: Batch size (number of images)
     C: Number of channels (e.g., 3 for RGB, 1 for grayscale)
@@ -20,9 +24,9 @@ def reshape_and_transpose(x: np.ndarray, B: int, C: int, H: int, W: int) -> np.n
         Better cache locality for channel-wise operations
 
     NHWC (Channels Last):
+        Better for memory access (spatial operations and visualization)
         Natural for image processing workflows
         Used by TensorFlow (default), OpenCV
-        Better for spatial operations and visualization
     """
 
     # 1. Validation check
@@ -30,8 +34,9 @@ def reshape_and_transpose(x: np.ndarray, B: int, C: int, H: int, W: int) -> np.n
     if x.size != expected_size:
         raise ValueError(f"Input size {x.size} does not match expected size {expected_size}")
 
-    # 2. Reshape to NCHW (Batch, Channels, Height, Width)
-    # This matches the memory layout described (all Channel 0, then Channel 1...)
+    # Step 1: Reshape to NCHW (PyTorch style)
+    # Memory interpretation: [B][C][H][W]
+    # All channels for first pixel, then next pixel
     x_nchw = x.reshape(B, C, H, W)
     
     # 3. Transpose to NHWC (Batch, Height, Width, Channels)
@@ -41,11 +46,17 @@ def reshape_and_transpose(x: np.ndarray, B: int, C: int, H: int, W: int) -> np.n
     
     return x_nhwc
 
+
 '''For a single RGB image (B=1, C=3, H=2, W=2):
 
 NCHW: [batch][R/G/B channels][rows][columns]
 NHWC: [batch][rows][columns][R/G/B channels]
-The transpose operation swaps the channel dimension from position 1 to position 3.'''
+The transpose operation swaps the channel dimension from position 1 to position 3.
+
+    Example Walkthrough:Row-major vs Column-major:
+        NumPy uses row-major (C-style): a[i, j] consecutive in memory
+        MATLAB uses column-major (Fortran-style): a(j, i) consecutive
+'''
 
 
 """
